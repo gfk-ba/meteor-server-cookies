@@ -1,6 +1,6 @@
 {
 	"name": "server-cookies",
-	"description": "Server-side access to http request cookies for Meteor.",
+	"description": "Server-side access to http request cookies.",
 	"homepage": "https://github.com/tbknl/meteor-server-cookies",
 	"author": "Dave van Soest (dave.soest@gfk.com)",
 	"version": "0.1",
