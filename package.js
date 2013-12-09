@@ -7,3 +7,9 @@ Package.on_use(function(api) {
     api.add_files('server-cookies.js', 'server');
     api.export('cookies', ['server']);
 });
+
+Package.on_test(function (api) {
+  api.use('server-cookies');
+
+  api.add_files('server-cookies_tests.js', ['server']);
+});
