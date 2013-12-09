@@ -1,3 +1,4 @@
+console.log('server-cookies!'); // TODO: Remove this line!
 
 var packageFunction = function() {
     WebApp.connectHandlers.use(function(req, res, next) {
