@@ -11,7 +11,8 @@ Package.on_use(function(api) {
     api.add_files('server-cookies.js', 'server');
     api.add_files('server-cookies_client.js', 'client');
 
-    api.export && api.export('serverCookies', ['server']);
+    api.export && api.export('ServerCookies', ['server']);
+    api.export && api.export('ServerCookies', ['client']);
 });
 
 Package.on_test(function (api) {

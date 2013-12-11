@@ -47,12 +47,12 @@ var packageFunction = function() {
     */
     var generateUniqueToken = function() {
         // TODO: Don't use this function with this implementation in production! Re-implement this properly!
-        return 'RT_' + Math.random() + '_' + (new Date()).getTime();
+        return 'RT_' + ('' + Math.random()).slice(2) + '_' + (new Date()).getTime();
     };
 
 
     // Make sure the cookieToken collection data is removed upon disconnection:
-    Meteor.publish('server_cookies_token', function(token) {
+    Meteor.publish('server-cookies_token', function(token) {
         this._session.socket.on('close', function() {
             Fiber(function() {
                 cookieTokens.remove({_id: token});
@@ -68,7 +68,7 @@ var packageFunction = function() {
          * Get the cookie token for the current DDP connection.
          * Note: Only returns the token once per connection.
         */
-        'getCookieToken': function() {
+        'server-cookies/getCookieToken': function() {
             if (!this._sessionData.cookieToken) {
                 var token = generateUniqueToken();
                 this._sessionData.cookieToken = token;
@@ -92,7 +92,7 @@ var packageFunction = function() {
              * Retrieve cookies by name.
              * Note: For security reasons, this method will not be available when the insecure package is not detected.
              */
-            'getCookieByName': function(name) {
+            'server-cookies/getCookieByName': function(name) {
                 var cookies = ServerCookies.retrieve(this);
                 return cookies && cookies[name] ? cookies[name] : null;
             }

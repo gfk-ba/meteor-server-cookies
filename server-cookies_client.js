@@ -1,18 +1,23 @@
 
-var SERVER_COOKIES_AVAILABLE_SESSION_KEY = 'server-cookies_available';
+ServerCookies = {
+    readySessionKey: 'server-cookies/ready',
+    ready: function() {
+        return Session.get(ServerCookies.readySessionKey);
+    }
+};
 
 
 Meteor.startup(function() {
-    Session.setDefault(SERVER_COOKIES_AVAILABLE_SESSION_KEY, false);
+    Session.setDefault(ServerCookies.readySessionKey, false);
 
     Deps.autorun(function() {
-        Session.set(SERVER_COOKIES_AVAILABLE_SESSION_KEY, false);
+        Session.set(ServerCookies.readySessionKey, false);
         var status = Meteor.status(); // Reactively rerun this function when the connection status changes.
         if (status.connected) {
             // Retrieve the cookie token for this new connection:
-            Meteor.call('getCookieToken', function(error, token) {
+            Meteor.call('server-cookies/getCookieToken', function(error, token) {
                 if (!error) {
-                    Meteor.subscribe('server_cookies_token', token);
+                    Meteor.subscribe('server-cookies_token', token);
 
                     if (token !== null) {
                         check(token, String);
@@ -33,7 +38,7 @@ Meteor.startup(function() {
         newScriptElem.src = __meteor_runtime_config__.ROOT_URL_PATH_PREFIX + '/cookieToken?token=' + encodeURIComponent(token);
         otherScriptElem.parentNode.insertBefore(newScriptElem, otherScriptElem);
 
-        Session.set(SERVER_COOKIES_AVAILABLE_SESSION_KEY, true);
+        Session.set(ServerCookies.readySessionKey, true);
     };
 });
 
