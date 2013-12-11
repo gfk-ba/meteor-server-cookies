@@ -15,7 +15,7 @@ Package.on_use(function(api) {
 });
 
 Package.on_test(function (api) {
-  api.use('server-cookies');
+  api.use(['server-cookies', 'tinytest', 'test-helpers']);
 
   api.add_files('server-cookies_tests.js', ['server']);
 });

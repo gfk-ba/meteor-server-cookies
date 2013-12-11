@@ -13,6 +13,7 @@ Meteor.startup(function() {
             Meteor.call('getCookieToken', function(error, token) {
                 if (!error) {
                     Meteor.subscribe('server_cookies_token', token);
+
                     if (token !== null) {
                         check(token, String);
                         setCookieTokenCookies(token);
@@ -31,6 +32,7 @@ Meteor.startup(function() {
         otherScriptElem = document.getElementsByTagName('script')[0];
         newScriptElem.src = __meteor_runtime_config__.ROOT_URL_PATH_PREFIX + '/cookieToken?token=' + encodeURIComponent(token);
         otherScriptElem.parentNode.insertBefore(newScriptElem, otherScriptElem);
+
         Session.set(SERVER_COOKIES_AVAILABLE_SESSION_KEY, true);
     };
 });

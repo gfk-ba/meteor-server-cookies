@@ -29,16 +29,16 @@ var packageFunction = function() {
     WebApp.connectHandlers.use('/cookieToken', function(req, res, next) {
         Fiber(function() {
             var token = req.query.token,
-                reqCookies = parseCookies(req);
-                cookieTokenDoc = cookieTokens.findOne({_id: token});
+            reqCookies = parseCookies(req);
+            cookieTokenDoc = cookieTokens.findOne({_id: token});
 
             if (cookieTokenDoc && cookieTokenDoc.cookies === null) {
                 cookieTokens.update(token, {$set: {cookies: reqCookies, headers: req.headers}});
             }
-        }).run();
 
-        res.writeHead(200, { 'Content-type': 'application/javascript' });
-        res.end("//nop", 'utf8');
+            res.writeHead(200, { 'Content-type': 'application/javascript' });
+            res.end("//nop", 'utf8');
+        }).run();
     });
 
 
@@ -47,13 +47,12 @@ var packageFunction = function() {
     */
     var generateUniqueToken = function() {
         // TODO: Don't use this function with this implementation in production! Re-implement this properly!
-        return 'RandomToken_' + Math.random();
+        return 'RT_' + Math.random() + '_' + (new Date()).getTime();
     };
 
 
+    // Make sure the cookieToken collection data is removed upon disconnection:
     Meteor.publish('server_cookies_token', function(token) {
-        console.log('SESSION OPENED', token, this._session.socket.id);
-
         this._session.socket.on('close', function() {
             Fiber(function() {
                 cookieTokens.remove({_id: token});
