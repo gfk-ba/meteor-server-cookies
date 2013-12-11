@@ -3,7 +3,7 @@
 	"description": "Server-side access to http request cookies.",
 	"homepage": "https://github.com/tbknl/meteor-server-cookies",
 	"author": "Dave van Soest (dave.soest@gfk.com)",
-	"version": "0.2",
+	"version": "0.2.0",
 	"git": "https://github.com/tbknl/meteor-server-cookies.git",
 	"packages": {}
 }
