@@ -4,6 +4,7 @@ Package.describe({
 
 Package.on_use(function(api) {
     api.use(['webapp', 'livedata', 'underscore'], ['server']);
+    api.use(['jquery'], ['client']);
 
     // Allow us to detect 'insecure'.
     api.use('insecure', {weak: true});

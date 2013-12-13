@@ -36,8 +36,11 @@ var packageFunction = function() {
                 cookieTokens.update(token, {$set: {cookies: reqCookies, headers: req.headers}});
             }
 
-            res.writeHead(200, { 'Content-type': 'application/javascript' });
-            res.end("//nop", 'utf8');
+            // TODO: Make timeout configurable, to simulate request latency.
+            Meteor.setTimeout(function() {
+                res.writeHead(200, { 'Content-type': 'application/javascript' });
+                res.end("//nop", 'utf8');
+            }, 0);
         }).run();
     });
 
@@ -51,14 +54,22 @@ var packageFunction = function() {
     };
 
 
+    // Store the cookie token as session data, and...
     // Make sure the cookieToken collection data is removed upon disconnection:
     Meteor.publish('server-cookies_token', function(token) {
+        if (!this._session.sessionData) {
+            this._session.sessionData = {};
+        }
+        this._session.sessionData.cookieToken = token;
+        cookieTokens.update(token, {$set: {ready: true}});
+
         this._session.socket.on('close', function() {
             Fiber(function() {
                 cookieTokens.remove({_id: token});
             }).run();
         });
 
+        this.ready(); // Triggers the onReady callback on the client.
         this.stop();
     });
 
@@ -75,7 +86,8 @@ var packageFunction = function() {
                 cookieTokens.insert({
                     _id: token,
                     cookies: null,
-                    headers: null
+                    headers: null,
+                    ready: false
                 });
                 return token;
             }
@@ -103,17 +115,30 @@ var packageFunction = function() {
     /*
      * Retrieve cookies.
      */
-    var retrieveCookies = function(methodContext) {
-        check(methodContext._sessionData, Object);
-
-        if (methodContext._sessionData.cookies) {
-            return methodContext._sessionData.cookies;
+    var retrieveCookies = function(context) {
+        var sessionData = {};
+        if (typeof context._sessionData === 'object') {
+            sessionData = context._sessionData;
         }
-        else if (methodContext._sessionData.cookieToken) {
-            var cookieDoc = cookieTokens.findOne({_id: methodContext._sessionData.cookieToken});
+
+        if (sessionData.cookies) {
+            return sessionData.cookies;
+        }
+        else if (sessionData.cookieToken) {
+            var cookieDoc = cookieTokens.findOne({
+                _id: sessionData.cookieToken,
+                cookies: {$ne: null},
+                ready: true
+            });
             if (cookieDoc && cookieDoc.cookies) {
-                methodContext._sessionData.cookies = cookieDoc.cookies;
-                return cookieDoc.cookies;
+                if (sessionData) {
+                    sessionData.cookies = cookieDoc.cookies;
+                    sessionData.headers = cookieDoc.headers;
+                }
+                return {
+                    cookies: cookieDoc.cookies,
+                    headers: cookieDoc.headers
+                };
             }
             else {
                 return null;
@@ -125,13 +150,48 @@ var packageFunction = function() {
     };
 
 
+    /*
+     * Observe cookies.
+     */
+    var observeCookies = function(context, callback) {
+        var cookieToken = '';
+        if (typeof context._session === 'object' && typeof context._session.sessionData === 'object') {
+            cookieToken = context._session.sessionData.cookieToken;
+        }
+        if (!cookieToken) {
+            throw new Meteor.Error(1001, 'CookieToken not available');
+        }
+
+        var cursor = cookieTokens.find({
+            _id: cookieToken,
+            cookies: {$ne: null},
+            ready: true
+        });
+        if (cursor.count() === 0) {
+            return null; // Cookies not ready!
+        }
+        
+        cursor.observeChanges({
+            removed: callback
+        });
+        
+        var cookieDoc = cursor.fetch()[0];
+        return {
+            cookies: cookieDoc.cookies,
+            headers: cookieDoc.headers
+        };
+    };
+
+
     // Returning the 'ServerCookies' object:
     return {
-        retrieve: retrieveCookies
+        retrieve: retrieveCookies,
+        observe: observeCookies
     };
 };
 
 
+ServerCookies = {};
 if (typeof Meteor !== 'undefined') {
     ServerCookies = packageFunction();
 }

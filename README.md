@@ -13,6 +13,8 @@ After installing the package, on the `ServerCookies` object is available on the 
 
 On the server side there also is a (different) `ServerCookies` object available. It provides the `retrieve` method, that can be called from a Meteor method and should be provided the method's context as a parameter. It returns all the cookies from the connected client. The cookie data is cached in the `_sessionData` property of the method context, used by subsequent calls to `retrieve`.
 
+In version 0.3.0 the server side function `ServerCookies.observe` is introduced, which can be used inside `Meteor.publish` to check for the cookie data becoming available and to register a callback that will be called when the cookie data is no longer available. See the usage example below.
+
 Usage example: (Please note that this example is for demonstration purposes only and should not be used in production! It introduces a security vulnerability by making all cookies, including the http-only cookies, available to the client!)
 
 ```
@@ -22,6 +24,22 @@ if (Meteor.isServer) {
             var cookies = ServerCookies.retrieve(this);
             return cookies && cookies[name] ? cookies[name] : null;
         }
+    });
+
+    Meteor.publish(function() {
+        var self = this;
+        var serverCookieData = ServerCookies.observe(self, function() {
+            console.log('Server cookies are no longer available!');
+            self.stop();
+        });
+        if (!serverCookieData) {
+            console.log('Server cookies are not yet available!');
+            self.stop();
+            return;
+        }
+        console.log('Server cookies are available!', serverCookieData.cookies);
+
+        return myCollection.find({username: serverCookieData.cookies.username});
     });
 }
 
@@ -41,10 +59,9 @@ How it works
 ------------
 
 1. Upon page load, the server-cookies package will call a server method, which returns a unique token identifying the client and creates a document in the 'cookieToken' collection, that will be used to store the cookies for the connected client.
-2. On the client side the token is used for two things:
-  a. A subscription is created with the sole purpose of detecting client disconnects on the server side, so that the corresponding 'cookieToken' document will be cleaned up. The reactive computation for this subscription is stopped immediately after it is created.
-  b. Using an injected script tag, a web request is made to the '/cookieToken' end-point registered by this package, along with the token as a parameter. The request will carry the client's cookies in its headers, which will be stored in the 'cookieToken' document identified by the token.
-3. After the cookie-token web request is finished, the function `ServerCookies.ready()` will return `true` on the client. On the server `ServerCookies.retrieve(this)` will return the connected client's cookies, when called from within a Meteor method.
+2. Using an injected script tag, a web request is made to the '/cookieToken' end-point registered by this package, along with the token as a parameter. The request will carry the client's cookies in its headers, which will be stored in the 'cookieToken' document identified by the token.
+3. A subscription is created with the sole purpose of detecting client disconnects on the server side, so that the corresponding 'cookieToken' document will be cleaned up. The reactive computation for this subscription is stopped immediately after it is created.
+4. After the cookie-token web request is finished, the function `ServerCookies.ready()` will return `true` on the client. On the server `ServerCookies.retrieve(this)` will return the connected client's cookies, when called from within a Meteor method.
 
 
 Credits
