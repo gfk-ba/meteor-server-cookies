@@ -36,11 +36,8 @@ Meteor.startup(function() {
     var setCookieTokenCookies = function(token) {
         var scriptUrl = __meteor_runtime_config__.ROOT_URL_PATH_PREFIX + '/cookieToken?token=' + encodeURIComponent(token);
         var script = $.getScript(scriptUrl, function() {
-            Meteor.subscribe('server-cookies_token', token, function() {
-                Session.set(ServerCookies.readySessionKey, true);
-            });
+            Session.set(ServerCookies.readySessionKey, true);
         });
     };
 });
-
 

@@ -33,7 +33,11 @@ var packageFunction = function() {
             cookieTokenDoc = cookieTokens.findOne({_id: token});
 
             if (cookieTokenDoc && cookieTokenDoc.cookies === null) {
-                cookieTokens.update(token, {$set: {cookies: reqCookies, headers: req.headers}});
+                cookieTokens.update(token, {$set: {
+                    cookies: reqCookies,
+                    headers: req.headers,
+                    ready: true
+                }});
             }
 
             // TODO: Make timeout configurable, to simulate request latency.
@@ -54,46 +58,28 @@ var packageFunction = function() {
     };
 
 
-    // Store the cookie token as session data, and...
-    // Make sure the cookieToken collection data is removed upon disconnection:
-    Meteor.publish('server-cookies_token', function(token) {
-        if (!this._session.sessionData) {
-            this._session.sessionData = {};
-        }
-        this._session.sessionData.cookieToken = token;
-        cookieTokens.update(token, {$set: {ready: true}});
-
-        this._session.socket.on('close', function() {
-            Fiber(function() {
-                cookieTokens.remove({_id: token});
-            }).run();
-        });
-
-        this.ready(); // Triggers the onReady callback on the client.
-        this.stop();
-    });
-
-
     Meteor.methods({
         /*
          * Get the cookie token for the current DDP connection.
          * Note: Only returns the token once per connection.
         */
         'server-cookies/getCookieToken': function() {
-            if (!this._sessionData.cookieToken) {
-                var token = generateUniqueToken();
-                this._sessionData.cookieToken = token;
-                cookieTokens.insert({
-                    _id: token,
-                    cookies: null,
-                    headers: null,
-                    ready: false
-                });
-                return token;
-            }
-            else {
-                return null;
-            }
+            var connectionId = this.connection.id;
+
+            cookieTokens.insert({
+                _id: connectionId,
+                cookies: null,
+                headers: null,
+                ready: false
+            });
+
+            this.connection.onClose(function() {
+                Fiber(function() {
+                    cookieTokens.remove({_id: connectionId});
+                }).run();
+            });
+
+            return connectionId;
         }
     });
 
@@ -105,7 +91,7 @@ var packageFunction = function() {
              * Note: For security reasons, this method will not be available when the insecure package is not detected.
              */
             'server-cookies/getCookieByName': function(name) {
-                var cookies = ServerCookies.retrieve(this);
+                var cookies = ServerCookies.retrieve(this.connection);
                 return cookies && cookies[name] ? cookies[name] : null;
             }
         });
@@ -113,80 +99,52 @@ var packageFunction = function() {
 
 
     /*
-     * Retrieve cookies.
+     * Check connection data.
      */
-    var retrieveCookies = function(context) {
-        var sessionData = {};
-        if (typeof context._sessionData === 'object') {
-            sessionData = context._sessionData;
+    var getConnectionData = function(connection) {
+        var data = connection._serverCookiesData;
+
+        if (typeof data === 'undefined') {
+            data = connection._serverCookiesData = {};
+        }
+        else if (typeof data !== 'object') {
+            throw new Meteor.Error('Server-cookies private data key already in use.')
         }
 
-        if (sessionData.cookies) {
-            return sessionData.cookies;
+        return data;
+    };
+
+
+    /*
+     * Retrieve cookies.
+     */
+    var retrieveCookies = function(connection) {
+        var data = getConnectionData(connection);
+
+        if (data.cookies) {
+            return data.cookies;
         }
-        else if (sessionData.cookieToken) {
+        else {
             var cookieDoc = cookieTokens.findOne({
-                _id: sessionData.cookieToken,
+                _id: connection.id,
                 cookies: {$ne: null},
                 ready: true
             });
-            if (cookieDoc && cookieDoc.cookies) {
-                if (sessionData) {
-                    sessionData.cookies = cookieDoc.cookies;
-                    sessionData.headers = cookieDoc.headers;
-                }
-                return {
-                    cookies: cookieDoc.cookies,
-                    headers: cookieDoc.headers
-                };
+            if (cookieDoc) {
+                data.cookies = cookieDoc.cookies;
+                data.headers = cookieDoc.headers;
+                return data;
             }
             else {
                 return null;
             }
         }
-        else {
-            return null;
-        }
-    };
-
-
-    /*
-     * Observe cookies.
-     */
-    var observeCookies = function(context, callback) {
-        var cookieToken = '';
-        if (typeof context._session === 'object' && typeof context._session.sessionData === 'object') {
-            cookieToken = context._session.sessionData.cookieToken;
-        }
-        if (!cookieToken) {
-            throw new Meteor.Error(1001, 'CookieToken not available');
-        }
-
-        var cursor = cookieTokens.find({
-            _id: cookieToken,
-            cookies: {$ne: null},
-            ready: true
-        });
-        if (cursor.count() === 0) {
-            return null; // Cookies not ready!
-        }
-        
-        cursor.observeChanges({
-            removed: callback
-        });
-        
-        var cookieDoc = cursor.fetch()[0];
-        return {
-            cookies: cookieDoc.cookies,
-            headers: cookieDoc.headers
-        };
     };
 
 
     // Returning the 'ServerCookies' object:
     return {
-        retrieve: retrieveCookies,
-        observe: observeCookies
+        retrieve: retrieveCookies
     };
 };
 
