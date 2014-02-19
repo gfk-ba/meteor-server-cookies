@@ -99,30 +99,13 @@ var packageFunction = function() {
 
 
     /*
-     * Check connection data.
-     */
-    var getConnectionData = function(connection) {
-        var data = connection._serverCookiesData;
-
-        if (typeof data === 'undefined') {
-            data = connection._serverCookiesData = {};
-        }
-        else if (typeof data !== 'object') {
-            throw new Meteor.Error('Server-cookies private data key already in use.')
-        }
-
-        return data;
-    };
-
-
-    /*
      * Retrieve cookies.
      */
     var retrieveCookies = function(connection) {
-        var data = getConnectionData(connection);
+        var data = connection._serverCookiesData;
 
-        if (data.cookies) {
-            return data.cookies;
+        if (data) {
+            return data;
         }
         else {
             var cookieDoc = cookieTokens.findOne({
@@ -131,8 +114,11 @@ var packageFunction = function() {
                 ready: true
             });
             if (cookieDoc) {
-                data.cookies = cookieDoc.cookies;
-                data.headers = cookieDoc.headers;
+                data = {
+                    cookies: cookieDoc.cookies,
+                    headers: cookieDoc.headers
+                };
+                connection._serverCookiesData = data;
                 return data;
             }
             else {
