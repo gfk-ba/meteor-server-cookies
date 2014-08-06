@@ -20,7 +20,7 @@ Usage example: (Please note that this example is for demonstration purposes only
 
 ```
 if (Meteor.isServer) {
-    Metheor.methods({
+    Meteor.methods({
         'getCookieByName': function(name) {
             var cookies = ServerCookies.retrieve(this.connection);
             return cookies && cookies[name] ? cookies[name] : null;
