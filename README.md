@@ -18,11 +18,12 @@ On the server side there also is a (different) `ServerCookies` object available.
 
 Usage example: (Please note that this example is for demonstration purposes only and should not be used in production! It introduces a security vulnerability by making all cookies, including the http-only cookies, available to the client!)
 
-```
+```javascript
 if (Meteor.isServer) {
     Meteor.methods({
         'getCookieByName': function(name) {
-            var cookies = ServerCookies.retrieve(this.connection);
+            var data = ServerCookies.retrieve(this.connection);
+            var cookies = data && data.cookies;
             return cookies && cookies[name] ? cookies[name] : null;
         }
     });
@@ -37,6 +38,15 @@ if (Meteor.isClient) {
         }
     });
 }
+```
+
+Notice that you should replace `'my_cookie_name'` with the name of a cookie that is set on the domain in which the application is running.
+
+If there are no cookies set on the domain, then you can set one programmatically in the browser console as shown below. Then refresh the page in your browser.
+
+```javascript
+// Type this in your browser console to set a cookie, then refresh the page:
+document.cookie = 'my_cookie_name=MyCookieValue';
 ```
 
 
