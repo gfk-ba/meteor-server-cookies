@@ -17,14 +17,20 @@ Meteor.startup(function() {
             // TODO: Make the timeout configurable, to simulate slow server.
             Meteor.setTimeout(function() {
                 // Retrieve the cookie token for this new connection:
-                Meteor.call('server-cookies/getCookieToken', function(error, token) {
-                    if (!error) {
-                        if (token !== null) {
-                            check(token, String);
-                            setCookieTokenCookies(token);
+                Meteor.apply(
+                    'server-cookies/getCookieToken',
+                    [],
+                    {
+                        onResultReceived: function(err, token) {
+                            if (!err) {
+                                if (token !== null) {
+                                    check(token, String);
+                                    setCookieTokenCookies(token);
+                                }
+                            }
                         }
                     }
-                });
+                );
             }, 0);
         }
     });
