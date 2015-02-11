@@ -33,11 +33,11 @@ var packageFunction = function() {
             cookieTokenDoc = cookieTokens.findOne({_id: token});
 
             if (cookieTokenDoc && cookieTokenDoc.cookies === null) {
-                cookieTokens.update(token, {$set: {
+                cookieTokens.upsert(token, {
                     cookies: reqCookies,
                     headers: req.headers,
                     ready: true
-                }});
+                });
             }
 
             // TODO: Make timeout configurable, to simulate request latency.
@@ -139,4 +139,3 @@ ServerCookies = {};
 if (typeof Meteor !== 'undefined') {
     ServerCookies = packageFunction();
 }
-
