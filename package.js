@@ -1,23 +1,48 @@
 Package.describe({
-    summary: "Server-side access to http request cookies."
+    name: "gfk:server-cookies",
+    summary: "Server-side access to http request cookies.",
+    version: "0.2.0"
 });
 
-Package.on_use(function(api) {
-    api.use(['webapp', 'livedata', 'underscore'], ['server']);
-    api.use(['jquery'], ['client']);
+Package.onUse(function(api) {
+    api.use(['webapp', 'underscore'], 'server');
+    api.use([
+        'tracker',
+        'reactive-var',
+        'jquery'
+    ], 'client');
 
-    // Allow us to detect 'insecure'.
-    api.use('insecure', {weak: true});
+    api.addFiles([
+        'server/server-cookies.js',
+        'server/methods.js'
+    ], 'server');
 
-    api.add_files('server-cookies.js', 'server');
-    api.add_files('server-cookies_client.js', 'client');
+    api.addFiles(['client/server-cookies.js'], 'client');
 
-    api.export && api.export('ServerCookies', ['server']);
-    api.export && api.export('ServerCookies', ['client']);
+    api.export('ServerCookies', ['server', 'client']);
+
+    api.export([
+        'cookieTokenRequestHandler',
+        'cookieTokens',
+        'cookieTokens',
+        'serverCookieMethods'
+        ], 'server', { testOnly: true });
+
+    api.export([
+        'trackConnectionStatus',
+        'setCookieTokenCookies'
+    ], 'client', { testOnly: true });
+
+
 });
 
-Package.on_test(function (api) {
-  api.use(['server-cookies', 'tinytest', 'test-helpers']);
+Package.onTest(function (api) {
+  api.use(['gfk:server-cookies', 'tinytest', 'test-helpers', 'practicalmeteor:munit@2.1.2']);
 
-  api.add_files('server-cookies_tests.js', ['server']);
+  api.add_files([
+      'test/server/server-cookies.test.js',
+      'test/server/methods.test.js'
+  ], ['server']);
+
+  api.add_files('test/client/server-cookies.test.js', ['client']);
 });
