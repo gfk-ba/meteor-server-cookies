@@ -29,7 +29,11 @@ var packageFunction = function() {
     WebApp.connectHandlers.use('/cookieToken', function(req, res, next) {
         Fiber(function() {
             var token = req.query.token,
-            reqCookies = parseCookies(req);
+            parsedCookies = parseCookies(req),
+            reqCookies = {};
+            for (var k in parsedCookies) {
+              reqCookies[k.replace(/\./g, '%2E')] = parsedCookies[k];
+            }
             cookieTokenDoc = cookieTokens.findOne({_id: token});
 
             if (cookieTokenDoc && cookieTokenDoc.cookies === null) {
