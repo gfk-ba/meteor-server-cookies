@@ -31,8 +31,6 @@ describe('ServerCookies', function () {
             fakeResponse = new FakeResponse();
         });
 
-        function setup () {}
-
         it('Should save the cookies in the request', function (done) {
             cookieTokenRequestHandler(fakeRequest, fakeResponse);
 

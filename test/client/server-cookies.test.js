@@ -10,15 +10,13 @@ describe('ServerCookies', function () {
     });
 
     describe('#trackConnectionStatus', function () {
-        function setup() {
+        beforeEach(function () {
             sandbox.stub(Meteor, 'status');
             sandbox.stub(Meteor, 'apply');
-        }
+        })
 
         describe('When connection is not ready', function () {
             it('Should do nothing', function () {
-                setup();
-
                 Meteor.status.returns({
                     connected: false
                 });
@@ -30,8 +28,6 @@ describe('ServerCookies', function () {
         });
 
         it('Should call getCookieToken meteor method', function () {
-            setup();
-
             Meteor.status.returns({
                 connected: true
             });
