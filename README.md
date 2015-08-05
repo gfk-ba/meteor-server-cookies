@@ -5,9 +5,16 @@ Server-side access to http request cookies for Meteor.
 
 An example use-case is sharing session cookies between Meteor and another application server running on the same domain.
 
+* Version 1.0.0 of meteor-server-cookies will __ONLY__ work with Meteor version 1.0 or newer.
 * Version 0.4.0 of meteor-server-cookies will __ONLY__ work with Meteor version 0.7.0 or newer.
 * Version 0.3.0 of meteor-server-cookies does __NOT__ work with Meteor version 0.7.0.
 
+Install
+-----
+To install the package run the following command:
+```
+meteor add gfk:server-cookies
+```
 
 Usage
 -----
