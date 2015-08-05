@@ -47,6 +47,24 @@ describe('ServerCookies', function () {
             Meteor.setTimeout(timedTest, 10);
         });
 
+        it('Should escape invalid characters in the cookies', function (done) {
+            fakeRequest.headers.cookie = '.foo=bar;$bar=foo';
+
+            cookieTokenRequestHandler(fakeRequest, fakeResponse);
+
+            var timedTest = function () {
+                try {
+                    var cookieToken = cookieTokens.findOne(fakeRequest.query.token) || {};
+                    expect(cookieToken.cookies).to.eql({'．foo':'bar', '＄bar': 'foo'});
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            };
+
+            Meteor.setTimeout(timedTest, 10);
+        });
+
         it('Should return a 200 http response code', function (done) {
             cookieTokenRequestHandler(fakeRequest, fakeResponse);
 

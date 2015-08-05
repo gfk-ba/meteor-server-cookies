@@ -4,6 +4,19 @@ var Fiber = Npm.require('fibers');
 // Meteor collection to store cookie information:
 cookieTokens = new Meteor.Collection('cookieToken');
 
+
+/**
+ * Escapes the mongo `key`.
+ *
+ * @param {String} key
+ * @return {String}
+ */
+
+function mongoEscape (key) {
+  return key.replace(/\$/g, '\uFF04')
+            .replace(/\./g, '\uFF0E');
+}
+
 /*
  * Parse request cookie string.
  * Function content copied from stackoverflow answer by Corey Hart.
@@ -15,7 +28,7 @@ function parseCookies (request) {
 
     rc && rc.split(';').forEach(function( cookie ) {
         var parts = cookie.split('=');
-        list[parts.shift().trim()] = unescape(parts.join('='));
+        list[mongoEscape(parts.shift().trim())] = unescape(parts.join('='));
     });
 
     return list;

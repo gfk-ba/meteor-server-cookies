@@ -49,6 +49,8 @@ If there are no cookies set on the domain, then you can set one programmatically
 document.cookie = 'my_cookie_name=MyCookieValue';
 ```
 
+**Note: Because json field name's can not contain a . or $ these characters are excaped to the unicode fullwidth versions: [．](http://www.fileformat.info/info/unicode/char/ff0e/index.htm) & [＄](http://www.fileformat.info/info/unicode/char/ff04/index.htm)**
+
 
 How it works
 ------------
