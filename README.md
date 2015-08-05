@@ -1,4 +1,4 @@
-meteor-server-cookies
+meteor-server-cookies [![Build Status](https://travis-ci.org/gfk-ba/meteor-server-cookies.svg?branch=master)](https://travis-ci.org/gfk-ba/meteor-server-cookies)
 =====================
 
 Server-side access to http request cookies for Meteor.
