@@ -11,7 +11,7 @@ describe('ServerCookies', function () {
     describe('#cookieTokenRequestHandler', function () {
         var fakeRequest, fakeResponse;
 
-        function setup () {
+        beforeEach(function () {
             fakeRequest = {
                 query: {
                     token: getRandomId()
@@ -29,36 +29,39 @@ describe('ServerCookies', function () {
             });
 
             fakeResponse = new FakeResponse();
-        }
+        });
 
-        it('Should save the cookies in the request', function (test, waitFor) {
-            setup();
+        function setup () {}
 
+        it('Should save the cookies in the request', function (done) {
             cookieTokenRequestHandler(fakeRequest, fakeResponse);
+
             var timedTest = function () {
                 try {
                     var cookieToken = cookieTokens.findOne(fakeRequest.query.token) || {};
                     expect(cookieToken.cookies).to.eql({foo:'bar'});
+                    done();
                 } catch (error) {
-                    test.exception(error);
+                    done(error);
                 }
             };
 
-            Meteor.setTimeout(waitFor(timedTest), 5);
+            Meteor.setTimeout(timedTest, 10);
         });
 
-        it('Should return a 200 http response code', function (test, waitFor) {
-            setup();
+        it('Should return a 200 http response code', function (done) {
             cookieTokenRequestHandler(fakeRequest, fakeResponse);
+
             var timedTest = function () {
                 try {
                     expect(fakeResponse.writeHead).to.be.calledWith(200);
+                    done();
                 } catch (error) {
-                    test.exception(error);
+                    done(error);
                 }
             };
 
-            Meteor.setTimeout(waitFor(timedTest), 10);
+            Meteor.setTimeout(timedTest, 10);
         });
 
         describe('#retrieve', function () {
@@ -84,7 +87,7 @@ describe('ServerCookies', function () {
             });
 
             describe('When cookieToken matching the connectionId was not ready yet', function () {
-                it ('Should return null', function (test, waitFor) {
+                it ('Should return null', function (done) {
                     var fakeConnection = {
                         id: getRandomId()
                     };
@@ -97,16 +100,17 @@ describe('ServerCookies', function () {
                     var timedTest = function () {
                         try {
                             expect(ServerCookies.retrieve(fakeConnection)).to.eql(null);
+                            done();
                         } catch (error) {
-                            test.exception(error);
+                            done(error);
                         }
                     };
 
-                    Meteor.setTimeout(waitFor(timedTest), 10);
+                    Meteor.setTimeout(timedTest, 10);
                 });
             });
 
-            it('Should return the cookies and headers', function (test, waitFor) {
+            it('Should return the cookies and headers', function (done) {
                 var fakeConnection = {
                     id: getRandomId(),
                 };
@@ -135,12 +139,13 @@ describe('ServerCookies', function () {
                             cookies: fakeCookieToken.cookies,
                             headers: fakeCookieToken.headers
                         });
+                        done();
                     } catch (error) {
-                        test.exception(error);
+                        done(error);
                     }
                 };
 
-                Meteor.setTimeout(waitFor(timedTest), 5);
+                Meteor.setTimeout(timedTest, 10);
             });
         });
     })

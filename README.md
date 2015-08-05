@@ -62,4 +62,3 @@ Credits
 -------
 
 My thanks go out to the developer(s) of the [Meteor-headers](https://github.com/gadicohen/meteor-headers) package, from which I re-used a number of Meteor tricks to make this package work.
-

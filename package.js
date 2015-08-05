@@ -24,7 +24,6 @@ Package.onUse(function(api) {
     api.export([
         'cookieTokenRequestHandler',
         'cookieTokens',
-        'cookieTokens',
         'serverCookieMethods'
         ], 'server', { testOnly: true });
 
@@ -37,7 +36,12 @@ Package.onUse(function(api) {
 });
 
 Package.onTest(function (api) {
-  api.use(['gfk:server-cookies', 'tinytest', 'test-helpers', 'practicalmeteor:munit@2.1.2']);
+  api.use([
+    'gfk:server-cookies',
+    'mike:mocha-package@0.5.8',
+    'practicalmeteor:sinon',
+    'practicalmeteor:chai'
+  ]);
 
   api.add_files([
       'test/server/server-cookies.test.js',
