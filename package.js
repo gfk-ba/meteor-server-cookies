@@ -1,7 +1,7 @@
 Package.describe({
     name: "gfk:server-cookies",
     summary: "Server-side access to http request cookies.",
-    version: "1.0.0"
+    version: "1.0.1"
 });
 
 Package.onUse(function(api) {
